@@ -31,6 +31,9 @@
 
 struct history;
 
+#define GRAPH_CFG_BRAILLE		0x01
+#define GRAPH_BRAILLE_CELL_BYTES	3
+
 struct graph_cfg {
 	int			gc_height,
 				gc_width,
