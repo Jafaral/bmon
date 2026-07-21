@@ -34,8 +34,6 @@
 
 static int c_quit_after = -1;
 static char uschar = 10;
-static int e_count, g_count;
-
 static void json_print_string(const char *s)
 {
 	putchar('"');
@@ -79,8 +77,10 @@ static void json_print_string(const char *s)
 	putchar('"');
 }
 
-static void print_attr_detail(struct element *e, struct attr *a, void *arg)
+static void print_attr_detail(struct element *e BMON_UNUSED, struct attr *a,
+			      void *arg)
 {
+	int *a_count = arg;
 	char *rx_u, *tx_u;
 	int rxprec, txprec;
 
@@ -91,7 +91,9 @@ static void print_attr_detail(struct element *e, struct attr *a, void *arg)
 				   a->a_def->ad_unit,
 				   &tx_u, &txprec);
 
-	printf(",\n      ");
+	if (*a_count > 0)
+		printf(",");
+	printf("\n        ");
 	json_print_string(a->a_def->ad_name);
 	printf(": { \"desc\": ");
 	json_print_string(a->a_def->ad_description);
@@ -100,12 +102,16 @@ static void print_attr_detail(struct element *e, struct attr *a, void *arg)
 	printf("], \"tx\": [%.*f,", txprec, tx);
 	json_print_string(tx_u);
 	printf("]}");
+	(*a_count)++;
 }
 
-static void json_draw_element(struct element_group *g, struct element *e,
-			      void *arg)
+static void json_draw_element(struct element_group *g BMON_UNUSED,
+			      struct element *e, void *arg)
 {
-	if (e_count > 0)
+	int *e_count = arg;
+	int a_count = 0;
+
+	if (*e_count > 0)
 		printf(",");
 	printf("\n    {\n      \"name\": ");
 	json_print_string(e->e_name);
@@ -115,31 +121,37 @@ static void json_draw_element(struct element_group *g, struct element *e,
 		printf(",\n      \"parent\": ");
 		json_print_string(e->e_parent->e_name);
 	}
-	element_foreach_attr(e, print_attr_detail, NULL);
-	printf("\n    }");
-	e_count++;
+	printf(",\n      \"attrs\": {");
+	element_foreach_attr(e, print_attr_detail, &a_count);
+	if (a_count > 0)
+		printf("\n      ");
+	printf("}\n    }");
+	(*e_count)++;
 }
 
 static void json_draw_group(struct element_group *g, void *arg)
 {
-	if (g_count > 0)
+	int *g_count = arg;
+	int e_count = 0;
+
+	if (*g_count > 0)
 		printf(",\n");
 	printf("  { \"name\": ");
 	json_print_string(g->g_name);
 	printf(", \"elements\": [");
-	e_count = 0;
-	group_foreach_element(g, json_draw_element, NULL);
+	group_foreach_element(g, json_draw_element, &e_count);
 	if (e_count > 0)
 		printf("\n  ");
 	printf("]}");
-	g_count++;
+	(*g_count)++;
 }
 
 static void json_draw(void)
 {
+	int g_count = 0;
+
 	printf("[\n");
-	g_count = 0;
-	group_foreach(json_draw_group, NULL);
+	group_foreach(json_draw_group, &g_count);
 	if (g_count > 0)
 		printf("\n");
 	printf("]\n%c", uschar);
