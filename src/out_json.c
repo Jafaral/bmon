@@ -33,7 +33,8 @@
 #include <bmon/utils.h>
 
 static int c_quit_after = -1;
-static char uschar = 10;
+static char c_rschar = '\n';
+
 static void json_print_string(const char *s)
 {
 	putchar('"');
@@ -154,7 +155,7 @@ static void json_draw(void)
 	group_foreach(json_draw_group, &g_count);
 	if (g_count > 0)
 		printf("\n");
-	printf("]\n%c", uschar);
+	printf("]%c", c_rschar);
 	fflush(stdout);
 
 	if (c_quit_after > 0)
@@ -167,18 +168,30 @@ static void print_help(void)
 	printf(
 	"json - JSON output\n" \
 	"\n" \
+	"  Prints one JSON array per update for scripting / streaming.\n" \
+	"  Each array is followed by the record separator (default: newline).\n" \
+	"\n" \
+	"  Example:\n" \
+	"      bmon -p eth0 -o 'json:quitafter=1'\n" \
+	"\n" \
 	"  Options:\n" \
 	"    quitafter=NUM  Quit bmon after NUM outputs\n" \
-	"    uschar=CHAR    Unit separator character (default: \\x0a)\n");
+	"    rschar=CHAR    Record separator after each JSON array\n" \
+	"                   (default: \\n)\n");
 }
 
 static void json_parse_opt(const char *type, const char *value)
 {
-	if (!strcasecmp(type, "uschar") && value)
-		uschar = value[0];
-	else if (!strcasecmp(type, "quitafter") && value)
-		c_quit_after = strtol(value, NULL, 0);
-	else if (!strcasecmp(type, "help")) {
+	if (!strcasecmp(type, "rschar")) {
+		if (value && value[0] != '\0')
+			c_rschar = value[0];
+	} else if (!strcasecmp(type, "quitafter") && value) {
+		char *endptr;
+
+		c_quit_after = strtol(value, &endptr, 0);
+		if (*endptr != '\0')
+			quit("Invalid value for quitafter: '%s'\n", value);
+	} else if (!strcasecmp(type, "help")) {
 		print_help();
 		exit(0);
 	} else
