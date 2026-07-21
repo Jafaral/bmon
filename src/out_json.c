@@ -146,11 +146,12 @@ static void json_draw(void)
 {
 	int g_count = 0;
 
-	printf("[\n");
+	printf("{\n  \"timestamp\": %lld,\n  \"groups\": [\n",
+	       (long long) time(NULL));
 	group_foreach(json_draw_group, &g_count);
 	if (g_count > 0)
 		printf("\n");
-	printf("]%c", c_rschar);
+	printf("  ]\n}%c", c_rschar);
 	fflush(stdout);
 
 	if (c_quit_after > 0)
@@ -163,15 +164,16 @@ static void print_help(void)
 	printf(
 	"json - JSON output\n" \
 	"\n" \
-	"  Prints one JSON array per update for scripting / streaming.\n" \
-	"  Each array is followed by the record separator (default: newline).\n" \
+	"  Prints one JSON object per update for scripting / streaming.\n" \
+	"  Each object has a Unix timestamp and a groups array, followed\n" \
+	"  by the record separator (default: newline).\n" \
 	"\n" \
 	"  Example:\n" \
 	"      bmon -p eth0 -o 'json:quitafter=1'\n" \
 	"\n" \
 	"  Options:\n" \
 	"    quitafter=NUM  Quit bmon after NUM outputs\n" \
-	"    rschar=CHAR    Record separator after each JSON array\n" \
+	"    rschar=CHAR    Record separator after each JSON object\n" \
 	"                   (default: \\n)\n");
 }
 
