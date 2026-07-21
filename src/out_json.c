@@ -82,15 +82,7 @@ static void print_attr_detail(struct element *e BMON_UNUSED, struct attr *a,
 			      void *arg)
 {
 	int *a_count = arg;
-	char *rx_u, *tx_u;
-	int rxprec, txprec;
-
-	double rx = unit_value2str(rate_get_total(&a->a_rx_rate),
-				   a->a_def->ad_unit,
-				   &rx_u, &rxprec);
-	double tx = unit_value2str(rate_get_total(&a->a_tx_rate),
-				   a->a_def->ad_unit,
-				   &tx_u, &txprec);
+	const char *unit = a->a_def->ad_unit ? a->a_def->ad_unit->u_name : "";
 
 	if (*a_count > 0)
 		printf(",");
@@ -98,11 +90,14 @@ static void print_attr_detail(struct element *e BMON_UNUSED, struct attr *a,
 	json_print_string(a->a_def->ad_name);
 	printf(": { \"desc\": ");
 	json_print_string(a->a_def->ad_description);
-	printf(", \"rx\": [%.*f,", rxprec, rx);
-	json_print_string(rx_u);
-	printf("], \"tx\": [%.*f,", txprec, tx);
-	json_print_string(tx_u);
-	printf("]}");
+	printf(", \"unit\": ");
+	json_print_string(unit);
+	printf(", \"rx\": %" PRIu64 ", \"tx\": %" PRIu64
+	       ", \"rx_rate\": %.2f, \"tx_rate\": %.2f}",
+	       rate_get_total(&a->a_rx_rate),
+	       rate_get_total(&a->a_tx_rate),
+	       a->a_rx_rate.r_rate,
+	       a->a_tx_rate.r_rate);
 	(*a_count)++;
 }
 
