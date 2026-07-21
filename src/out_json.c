@@ -79,6 +79,14 @@ static void json_print_string(const char *s)
 	putchar('"');
 }
 
+static void json_print_float(double v)
+{
+	if (!isfinite(v))
+		fputs("null", stdout);
+	else
+		printf("%.2f", v);
+}
+
 static void print_attr_detail(struct element *e, struct attr *a, void *arg)
 {
 	int *a_count = arg;
@@ -93,11 +101,13 @@ static void print_attr_detail(struct element *e, struct attr *a, void *arg)
 	printf(", \"unit\": ");
 	json_print_string(unit);
 	printf(", \"rx\": %" PRIu64 ", \"tx\": %" PRIu64
-	       ", \"rx_rate\": %.2f, \"tx_rate\": %.2f}",
+	       ", \"rx_rate\": ",
 	       rate_get_total(&a->a_rx_rate),
-	       rate_get_total(&a->a_tx_rate),
-	       a->a_rx_rate.r_rate,
-	       a->a_tx_rate.r_rate);
+	       rate_get_total(&a->a_tx_rate));
+	json_print_float(a->a_rx_rate.r_rate);
+	printf(", \"tx_rate\": ");
+	json_print_float(a->a_tx_rate.r_rate);
+	printf("}");
 	(*a_count)++;
 }
 
