@@ -81,6 +81,7 @@ static void json_print_string(const char *s)
 
 static void print_attr_detail(struct element *e, struct attr *a, void *arg)
 {
+	int *a_count = arg;
 	char *rx_u, *tx_u;
 	int rxprec, txprec;
 
@@ -91,7 +92,9 @@ static void print_attr_detail(struct element *e, struct attr *a, void *arg)
 				   a->a_def->ad_unit,
 				   &tx_u, &txprec);
 
-	printf(",\n      ");
+	if (*a_count > 0)
+		printf(",");
+	printf("\n        ");
 	json_print_string(a->a_def->ad_name);
 	printf(": { \"desc\": ");
 	json_print_string(a->a_def->ad_description);
@@ -100,11 +103,14 @@ static void print_attr_detail(struct element *e, struct attr *a, void *arg)
 	printf("], \"tx\": [%.*f,", txprec, tx);
 	json_print_string(tx_u);
 	printf("]}");
+	(*a_count)++;
 }
 
 static void json_draw_element(struct element_group *g, struct element *e,
 			      void *arg)
 {
+	int a_count = 0;
+
 	if (e_count > 0)
 		printf(",");
 	printf("\n    {\n      \"name\": ");
@@ -115,8 +121,11 @@ static void json_draw_element(struct element_group *g, struct element *e,
 		printf(",\n      \"parent\": ");
 		json_print_string(e->e_parent->e_name);
 	}
-	element_foreach_attr(e, print_attr_detail, NULL);
-	printf("\n    }");
+	printf(",\n      \"attrs\": {");
+	element_foreach_attr(e, print_attr_detail, &a_count);
+	if (a_count > 0)
+		printf("\n      ");
+	printf("}\n    }");
 	e_count++;
 }
 
