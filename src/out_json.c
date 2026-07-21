@@ -78,6 +78,24 @@ static void json_print_string(const char *s)
 	putchar('"');
 }
 
+static void json_print_float(double v)
+{
+	long long iv;
+
+	if (!isfinite(v)) {
+		fputs("null", stdout);
+		return;
+	}
+
+	/* Locale-independent: JSON requires '.' as the decimal separator */
+	if (v < 0) {
+		putchar('-');
+		v = -v;
+	}
+	iv = (long long) (v * 100.0 + 0.5);
+	printf("%lld.%02d", iv / 100, (int) (iv % 100));
+}
+
 static void print_attr_detail(struct element *e BMON_UNUSED, struct attr *a,
 			      void *arg)
 {
@@ -93,11 +111,13 @@ static void print_attr_detail(struct element *e BMON_UNUSED, struct attr *a,
 	printf(", \"unit\": ");
 	json_print_string(unit);
 	printf(", \"rx\": %" PRIu64 ", \"tx\": %" PRIu64
-	       ", \"rx_rate\": %.2f, \"tx_rate\": %.2f}",
+	       ", \"rx_rate\": ",
 	       rate_get_total(&a->a_rx_rate),
-	       rate_get_total(&a->a_tx_rate),
-	       a->a_rx_rate.r_rate,
-	       a->a_tx_rate.r_rate);
+	       rate_get_total(&a->a_tx_rate));
+	json_print_float(a->a_rx_rate.r_rate);
+	printf(", \"tx_rate\": ");
+	json_print_float(a->a_tx_rate.r_rate);
+	printf("}");
 	(*a_count)++;
 }
 
