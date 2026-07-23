@@ -30,9 +30,10 @@
 #include <bmon/conf.h>
 #include <bmon/module.h>
 
-extern int input_set(const char *);
+extern int input_set(const char *, bool update);
 extern void input_register(struct bmon_module *);
 extern void input_read(void);
+extern int input_is_enabled(const char *name);
 
 struct reader_timing
 {

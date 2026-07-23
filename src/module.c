@@ -88,7 +88,7 @@ static void module_list(struct bmon_subsys *ss, struct list_head *list)
 	}
 }
 
-static int module_configure(struct bmon_module *m, module_conf_t *cfg)
+static int module_configure(struct bmon_module *m, module_conf_t *cfg, bool update)
 {
 	DBG("Configuring module %s", m->m_name);
 
@@ -99,11 +99,14 @@ static int module_configure(struct bmon_module *m, module_conf_t *cfg)
 			m->m_parse_opt(tv->tv_type, tv->tv_value);
 	}
 
-	if (m->m_probe && !m->m_probe())
+	/* No need to probe on update, already checked that the module is enabled */
+	if (!update && m->m_probe && !m->m_probe())
 		return -EINVAL;
 
-	m->m_flags |= BMON_MODULE_ENABLED;
-	m->m_subsys->s_nmod++;
+	if (!(m->m_flags & BMON_MODULE_ENABLED)) {
+		m->m_flags |= BMON_MODULE_ENABLED;
+		m->m_subsys->s_nmod++;
+	}
 
 	return 0;
 }
@@ -122,12 +125,12 @@ static void __auto_load(struct bmon_module *m)
 {
 	if ((m->m_flags & BMON_MODULE_AUTO) &&
 	    !(m->m_flags & BMON_MODULE_ENABLED)) {
-		if (module_configure(m, NULL) == 0)
+		if (module_configure(m, NULL, false) == 0)
 			DBG("Auto-enabled module %s", m->m_name);
 	}
 }
 
-int module_set(struct bmon_subsys *ss, const char *name)
+int module_set(struct bmon_subsys *ss, const char *name, bool update)
 {
 	struct bmon_module *mod;
 	LIST_HEAD(tmp_list);
@@ -145,8 +148,12 @@ int module_set(struct bmon_subsys *ss, const char *name)
 		if (!(mod = module_lookup(ss, m->m_name)))
 			quit("Unknown %s module: %s\n", ss->s_name, m->m_name);
 
-		if (module_configure(mod, m) == 0)
-			DBG("Enabled module %s", mod->m_name);
+		/* Only update if module is enabled */
+		if (!update || 
+			(update && (mod->m_flags & BMON_MODULE_ENABLED))) {
+			if (module_configure(mod, m, update) == 0)
+				DBG("%s module %s", (update ? "Updated" : "Enabled"), mod->m_name);
+		}
 		
 		list_for_each_entry_safe(tv, tvnext, &m->m_attrs, tv_list) {
 			xfree(tv->tv_value);
@@ -159,7 +166,8 @@ int module_set(struct bmon_subsys *ss, const char *name)
 		xfree(m);
 	}
 
-	module_foreach(ss, __auto_load);
+	if (!update)
+		module_foreach(ss, __auto_load);
 
 	if (!ss->s_nmod)
 		quit("No working %s module found\n", ss->s_name);

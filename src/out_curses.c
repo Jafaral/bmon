@@ -46,6 +46,7 @@ enum {
 	KEY_TOGGLE_INFO		= 'i',
 	KEY_TOGGLE_IPV4		= '4',
 	KEY_TOGGLE_IPV6		= '6',
+	KEY_TOGGLE_TC		= 't',
 	KEY_COLLECT_HISTORY	= 'h',
 	KEY_CTRL_N	= 14,
 	KEY_CTRL_P	= 16,
@@ -117,6 +118,7 @@ static int c_show_list = 1;
 static int c_show_info = 0;
 static int c_show_ipv4 = 1;
 static int c_show_ipv6 = 1;
+static int c_show_tc = 1;
 static int c_list_min = 6;
 
 static struct graph_cfg c_graph_cfg = {
@@ -343,7 +345,7 @@ static void print_message(const char *text)
 static void draw_help(void)
 {
 #define HW 46
-#define HH 21
+#define HH 22
 	int i, y = (rows/2) - (HH/2);
 	int x = (cols/2) - (HW/2);
 	char pad[HW+1];
@@ -391,19 +393,20 @@ static void draw_help(void)
 
 	mvaddnstr(y+ 9, x+3, "d             Toggle detailed statistics", -1);
 	mvaddnstr(y+10, x+3, "l             Toggle element list", -1);
-	mvaddnstr(y+11, x+3, "i             Toggle additional info", -1);
-	mvaddnstr(y+12, x+3, "4             Toggle IPv4 addresses", -1);
-	mvaddnstr(y+13, x+3, "6             Toggle IPv6 addresses", -1);
+	mvaddnstr(y+11, x+3, "t             Toggle TC elements", -1);
+	mvaddnstr(y+12, x+3, "i             Toggle additional info", -1);
+	mvaddnstr(y+13, x+3, "4             Toggle IPv4 addresses", -1);
+	mvaddnstr(y+14, x+3, "6             Toggle IPv6 addresses", -1);
 
 	attron(A_BOLD | A_UNDERLINE);
-	mvaddnstr(y+15, x+1, "Graph Settings", -1);
+	mvaddnstr(y+16, x+1, "Graph Settings", -1);
 	attroff(A_BOLD | A_UNDERLINE);
 
-	mvaddnstr(y+16, x+3, "g             Toggle graphical statistics", -1);
-	mvaddnstr(y+17, x+3, "H             Start recording history data", -1);
-	mvaddnstr(y+18, x+3, "TAB           Switch time unit of graph", -1);
-	mvaddnstr(y+19, x+3, "<, >          Change number of graphs", -1);
-	mvaddnstr(y+20, x+3, "r             Reset counter of element", -1);
+	mvaddnstr(y+17, x+3, "g             Toggle graphical statistics", -1);
+	mvaddnstr(y+18, x+3, "H             Start recording history data", -1);
+	mvaddnstr(y+19, x+3, "TAB           Switch time unit of graph", -1);
+	mvaddnstr(y+20, x+3, "<, >          Change number of graphs", -1);
+	mvaddnstr(y+21, x+3, "r             Reset counter of element", -1);
 
 	attroff(A_STANDOUT);
 
@@ -1135,6 +1138,17 @@ static void reset_counters(void)
 	element_foreach_attr(current_element, __reset_attr_counter, NULL);
 }
 
+static void toggle_tc_elements(int enable)
+{
+	if (input_is_enabled("netlink")) {
+		if (enable) {
+			input_set("netlink:notc=0", true);
+		} else {
+			input_set("netlink:notc=1", true);
+		}
+	}
+}
+
 static int handle_input(int ch)
 {
 	switch (ch) 
@@ -1198,6 +1212,11 @@ static int handle_input(int ch)
 
 		case KEY_TOGGLE_IPV6:
 			c_show_ipv6 = !c_show_ipv6;
+			return 1;
+
+		case KEY_TOGGLE_TC:
+			c_show_tc = !c_show_tc;
+			toggle_tc_elements(c_show_tc);
 			return 1;
 
 		case KEY_COLLECT_HISTORY:

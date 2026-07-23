@@ -532,6 +532,17 @@ struct link_addrs {
 static struct nl_sock *sock;
 static struct nl_cache *link_cache, *qdisc_cache, *addr_cache;
 
+static void element_free_tc(struct element *e)
+{
+	struct element *c, *cnext;
+	list_for_each_entry_safe(c, cnext, &e->e_childs, e_list) {
+		if (!strncasecmp(c->e_name, "class ", 6) ||
+			!strncasecmp(c->e_name, "qdisc ", 6) ||
+			!strncasecmp(c->e_name, "cls ", 4))
+			element_free(c);
+	}
+}
+
 static void update_tc_attrs(struct element *e, struct rtnl_tc *tc)
 {
 	int i;
@@ -706,11 +717,18 @@ static void handle_tc(struct element *e, struct rtnl_link *link)
 {
 	struct rtnl_qdisc *qdisc;
 	struct nl_cache *class_cache;
-	int ifindex = rtnl_link_get_ifindex(link);
+	int ifindex;
 	struct rdata rdata = {
 		.level = 1,
 		.parent = e,
 	};
+
+	if (c_notc) {
+		element_free_tc(e);
+		return;
+	}
+
+	ifindex = rtnl_link_get_ifindex(link);
 
 	if (rtnl_class_alloc_cache(sock, ifindex, &class_cache) < 0)
 		return;
@@ -903,7 +921,7 @@ static void do_link(struct nl_object *obj, void *arg)
 		attr_update(e, m->attrid, c_rx, c_tx, flags);
 	}
 
-	if (!c_notc && qdisc_cache)
+	if (qdisc_cache)
 		handle_tc(e, link);
 
 	update_link_infos(e, link);
@@ -1044,13 +1062,14 @@ static void print_help(void)
 	"  Author: Thomas Graf <tgraf@suug.ch>\n" \
 	"\n" \
 	"  Options:\n" \
-	"    notc           Do not collect traffic control statistics\n");
+	"    notc[=0|1]     Toggle collection of traffic control\n" \
+	"                   statistics [default: 1]\n");
 }
 
 static void netlink_parse_opt(const char *type, const char *value)
 {
 	if (!strcasecmp(type, "notc"))
-		c_notc = 1;
+		c_notc = value ? !!strtol(value, NULL, 0) : 1;
 	else if (!strcasecmp(type, "help")) {
 		print_help();
 		exit(0);

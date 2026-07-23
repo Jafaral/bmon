@@ -185,7 +185,7 @@ static int parse_args_post(int argc, char *argv[])
 		switch (c)
 		{
 			case 'i':
-				if (input_set(optarg))
+				if (input_set(optarg, false))
 					return 1;
 				break;
 

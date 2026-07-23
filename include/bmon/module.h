@@ -70,7 +70,7 @@ extern void		module_foreach_run_enabled(struct bmon_subsys *);
 extern void		module_foreach_run_enabled_post(struct bmon_subsys *);
 
 extern int		module_register(struct bmon_subsys *, struct bmon_module *);
-extern int		module_set(struct bmon_subsys *, const char *);
+extern int		module_set(struct bmon_subsys *, const char *, bool update);
 
 extern void		module_init(void);
 extern void		module_shutdown(void);
