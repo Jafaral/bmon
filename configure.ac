@@ -147,6 +147,18 @@ AC_ARG_ENABLE(curses,
 
 #####################################################################
 ##
+## IPv6 check
+##
+#####################################################################
+AC_ARG_ENABLE(netlink-ipv6,
+[  --disable-netlink-ipv6          Disable IPv6 elements (default enabled)],[
+	if test x$enableval = xno; then
+		AC_DEFINE_UNQUOTED(NETLINK_IPV6_DISABLED, "1", [disable IPv6])
+	fi
+])
+
+#####################################################################
+##
 ## debug check
 ##
 #####################################################################
