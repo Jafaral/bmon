@@ -1062,8 +1062,9 @@ static void print_help(void)
 	"  Author: Thomas Graf <tgraf@suug.ch>\n" \
 	"\n" \
 	"  Options:\n" \
-	"    notc[=0|1]     Toggle collection of traffic control\n" \
-	"                   statistics [default: 1]\n");
+	"    notc[=0|1]     Enable(0)/disable(1) collection of traffic\n" \
+	"                   control statistics (bare notc implies 1,\n" \
+	"                   default if not specified is enabled)\n");
 }
 
 static void netlink_parse_opt(const char *type, const char *value)
@@ -1076,12 +1077,21 @@ static void netlink_parse_opt(const char *type, const char *value)
 	}
 }
 
+static int netlink_get_opt(const char *opt)
+{
+	if (!strcasecmp(opt, "notc"))
+		return c_notc;
+	else
+		return -EINVAL;
+}
+
 static struct bmon_module netlink_ops = {
 	.m_name		= "netlink",
 	.m_flags	= BMON_MODULE_DEFAULT,
 	.m_do		= netlink_read,
 	.m_shutdown	= netlink_shutdown,
 	.m_parse_opt	= netlink_parse_opt,
+	.m_get_opt		= netlink_get_opt,
 	.m_probe	= netlink_probe,
 	.m_init		= netlink_do_init,
 };

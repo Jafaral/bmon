@@ -44,7 +44,7 @@ struct bmon_module
 	void		      (*m_shutdown)(void);
 
 	void		      (*m_parse_opt)(const char *, const char *);
-	void		      (*m_get_opt)(const char *);
+	int		      (*m_get_opt)(const char *);
 
 	void		      (*m_pre)(void);
 	void		      (*m_do)(void);

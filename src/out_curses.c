@@ -231,6 +231,8 @@ static int curses_init(void)
 	nodelay(stdscr, TRUE);	  /* getch etc. must be non-blocking */
 	clear();
 	curs_set(0);
+	if (input_is_enabled("netlink"))
+		c_show_tc = !input_get_opt("netlink", "notc");
 
 	return 0;
 }
