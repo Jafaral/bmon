@@ -131,7 +131,8 @@ int module_set(struct bmon_subsys *ss, const char *name)
 {
 	struct bmon_module *mod;
 	LIST_HEAD(tmp_list);
-	module_conf_t *m;
+	module_conf_t *m, *mnext;
+	tv_t *tv, *tvnext;
 
 	if (!name || !strcasecmp(name, "list")) {
 		module_list(ss, &ss->s_mod_list);
@@ -140,12 +141,22 @@ int module_set(struct bmon_subsys *ss, const char *name)
 	
 	parse_module_param(name, &tmp_list);
 
-	list_for_each_entry(m, &tmp_list, m_list) {
+	list_for_each_entry_safe(m, mnext, &tmp_list, m_list) {
 		if (!(mod = module_lookup(ss, m->m_name)))
 			quit("Unknown %s module: %s\n", ss->s_name, m->m_name);
 
 		if (module_configure(mod, m) == 0)
 			DBG("Enabled module %s", mod->m_name);
+		
+		list_for_each_entry_safe(tv, tvnext, &m->m_attrs, tv_list) {
+			xfree(tv->tv_value);
+			xfree(tv->tv_type);
+			list_del(&tv->tv_list);
+			xfree(tv);
+		}
+		xfree(m->m_name);
+		list_del(&m->m_list);
+		xfree(m);
 	}
 
 	module_foreach(ss, __auto_load);

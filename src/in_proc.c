@@ -31,7 +31,9 @@
 #include <bmon/utils.h>
 
 static const char *c_path = "/proc/net/dev";
+static int c_path_default = 1;
 static const char *c_group = DEFAULT_GROUP;
+static int c_group_default = 1;
 static struct element_group *grp;
 
 enum {
@@ -190,11 +192,19 @@ static void print_help(void)
 
 static void proc_parse_opt(const char *type, const char *value)
 {
-	if (!strcasecmp(type, "file") && value)
-		c_path = value;
-	else if (!strcasecmp(type, "group") && value)
-		c_group = value;
-	else if (!strcasecmp(type, "help")) {
+	if (!strcasecmp(type, "file") && value) {
+		if (!c_path_default)
+			xfree((char *)c_path);
+		if (!(c_path = strdup(value)))
+			quit("strdup: Out of memory\n");
+		c_path_default = 0;
+	} else if (!strcasecmp(type, "group") && value) {
+		if (!c_group_default)
+			xfree((char *)c_group);
+		if (!(c_group = strdup(value)))
+			quit("strdup: Out of memory\n");
+		c_group_default = 0;
+	} else if (!strcasecmp(type, "help")) {
 		print_help();
 		exit(0);
 	}
@@ -220,12 +230,27 @@ static int proc_probe(void)
 	return 0;
 }
 
+static void proc_shutdown(void)
+{
+	if (!c_path_default) {
+		xfree((char *)c_path);
+		c_path = NULL;
+		c_path_default = 1;
+	}
+	if (!c_group_default) {
+		xfree((char *)c_group);
+		c_group = NULL;
+		c_group_default = 1;
+	}
+}
+
 static struct bmon_module proc_ops = {
 	.m_name		= "proc",
 	.m_do		= proc_read,
 	.m_parse_opt	= proc_parse_opt,
 	.m_probe	= proc_probe,
 	.m_init		= proc_do_init,
+	.m_shutdown = proc_shutdown,
 };
 
 static void __init proc_init(void)
