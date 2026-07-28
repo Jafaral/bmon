@@ -90,6 +90,11 @@ int input_is_enabled(const char *name)
 	return 0;
 }
 
+int input_get_opt(const char *name, const char* opt)
+{
+	return module_get_opt(&input_subsys, name, opt);
+}
+
 static struct bmon_subsys input_subsys = {
 	.s_name			= "input",
 	.s_activate_default	= &activate_default,

@@ -177,6 +177,18 @@ int module_set(struct bmon_subsys *ss, const char *name, bool update)
 	return 0;
 }
 
+int module_get_opt(struct bmon_subsys *ss, const char *name, const char* opt)
+{
+	struct bmon_module *mod;
+	if (!(mod = module_lookup(ss, name)))
+		quit("Unknown %s module: %s\n", ss->s_name, name);
+
+	if ((mod->m_flags & BMON_MODULE_ENABLED) && mod->m_get_opt)
+		return mod->m_get_opt(opt);
+
+	return -EINVAL;
+}
+
 static void __module_init(struct bmon_module *m)
 {
 	if (m->m_init) {

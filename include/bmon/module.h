@@ -44,6 +44,7 @@ struct bmon_module
 	void		      (*m_shutdown)(void);
 
 	void		      (*m_parse_opt)(const char *, const char *);
+	void		      (*m_get_opt)(const char *);
 
 	void		      (*m_pre)(void);
 	void		      (*m_do)(void);
@@ -71,6 +72,7 @@ extern void		module_foreach_run_enabled_post(struct bmon_subsys *);
 
 extern int		module_register(struct bmon_subsys *, struct bmon_module *);
 extern int		module_set(struct bmon_subsys *, const char *, bool update);
+extern int		module_get_opt(struct bmon_subsys *, const char *, const char *);
 
 extern void		module_init(void);
 extern void		module_shutdown(void);

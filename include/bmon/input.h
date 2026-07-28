@@ -34,6 +34,7 @@ extern int input_set(const char *, bool update);
 extern void input_register(struct bmon_module *);
 extern void input_read(void);
 extern int input_is_enabled(const char *name);
+extern int input_get_opt(const char *name, const char *opt);
 
 struct reader_timing
 {
