@@ -68,7 +68,9 @@ static struct bmon_module netlink_ops;
 
 #define MAX_IPS	16
 #define INET_CIDR_MASK_STRLEN	3
+#ifndef NETLINK_IPV6_DISABLED
 #define INET6_CIDR_MASK_STRLEN	4
+#endif
 
 static struct attr_map link_attrs[] = {
 {
@@ -214,7 +216,9 @@ static struct attr_map link_attrs[] = {
 	.description	= "Multicast",
 	.rxid		= -1,
 	.txid		= RTNL_LINK_MULTICAST,
-},
+}
+#ifndef NETLINK_IPV6_DISABLED
+,
 {
 	.name		= "ip6pkts",
 	.type		= ATTR_TYPE_COUNTER,
@@ -431,6 +435,7 @@ static struct attr_map link_attrs[] = {
 	.rxid		= RTNL_LINK_IP6_CEPKTS,
 	.txid		= -1,
 }
+#endif
 };
 
 static struct attr_map tc_attrs[] = {
@@ -518,8 +523,10 @@ struct link_addrs {
 	int		ifindex;
 	char	inet4_addrs[MAX_IPS][INET_ADDRSTRLEN + INET_CIDR_MASK_STRLEN];
 	int		inet4_count;
+#ifndef NETLINK_IPV6_DISABLED
 	char	inet6_addrs[MAX_IPS][INET6_ADDRSTRLEN + INET6_CIDR_MASK_STRLEN];
 	int		inet6_count;
+#endif
 };
 
 static struct nl_sock *sock;
@@ -744,11 +751,14 @@ static void get_addresses_cb(struct nl_object *obj, void *arg)
 				la->inet4_count < MAX_IPS) {
 				nl_addr2str(local, la->inet4_addrs[la->inet4_count++],
 						sizeof(la->inet4_addrs[0]));
-			} else if (rtnl_addr_get_family(addr) == AF_INET6 &&
+			}
+#ifndef NETLINK_IPV6_DISABLED
+			else if (rtnl_addr_get_family(addr) == AF_INET6 &&
 					   la->inet6_count < MAX_IPS) {
 				nl_addr2str(local, la->inet6_addrs[la->inet6_count++],
 						sizeof(la->inet6_addrs[0]));
 			}
+#endif
 		}
 	}
 }
@@ -768,7 +778,7 @@ static void update_link_addrs(struct element *e, struct link_addrs *la)
 			 "IPv4[%u]", i + 1);
 		element_delete_info(e, addr_name_buf);
 	}
-
+#ifndef NETLINK_IPV6_DISABLED
 	for (i = 0; i < la->inet6_count; i++) {
 		snprintf(addr_name_buf, sizeof(addr_name_buf),
 			 "IPv6[%u]", i + 1);
@@ -779,6 +789,7 @@ static void update_link_addrs(struct element *e, struct link_addrs *la)
 			 "IPv6[%u]", i + 1);
 		element_delete_info(e, addr_name_buf);
 	}
+#endif
 }
 
 static void update_link_infos(struct element *e, struct rtnl_link *link)
