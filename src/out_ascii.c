@@ -267,7 +267,7 @@ static void ascii_parse_opt(const char *type, const char *value)
 		set_unk_char(value[0]);
 #endif
 	else if (!strcasecmp(type, "xunit") && value)
-		c_hist = strdup(value);
+		c_hist = xstrdup(value);
 #if 0
 	else if (!strcasecmp(type, "yunit") && value) {
 		struct unit *u;

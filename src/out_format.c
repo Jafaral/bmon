@@ -345,7 +345,7 @@ static void format_parse_opt(const char *type, const char *value)
 	else if (!strcasecmp(type, "fmt")) {
 		if (c_format)
 			free(c_format);
-		c_format = strdup(value);
+		c_format = xstrdup(value);
 	} else if (!strcasecmp(type, "quitafter") &&
 			       value)
 		c_quit_after = strtol(value, NULL, 0);
@@ -365,7 +365,7 @@ static struct bmon_module format_ops = {
 static void __init ascii_init(void)
 {
 	c_fd = stdout;
-	c_format = strdup("$(element:name) $(attr:rx:bytes) $(attr:tx:bytes) " \
+	c_format = xstrdup("$(element:name) $(attr:rx:bytes) $(attr:tx:bytes) " \
 	    "$(attr:rx:packets) $(attr:tx:packets)\\n");
 
 	output_register(&format_ops);

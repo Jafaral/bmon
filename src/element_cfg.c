@@ -41,7 +41,7 @@ struct element_cfg *element_cfg_alloc(const char *name)
 	}
 
 	ec = xcalloc(1, sizeof(*ec));
-	ec->ec_name = strdup(name);
+	ec->ec_name = xstrdup(name);
 	ec->ec_refcnt = 1;
 
 	list_add_tail(&ec->ec_list, &cfg_list);

@@ -151,10 +151,10 @@ tv_t * parse_tv(char *data)
 	if (value) {
 		*value = '\0';
 		++value;
-		tv->tv_value = strdup(value);
+		tv->tv_value = xstrdup(value);
 	}
 
-	tv->tv_type = strdup(data);
+	tv->tv_type = xstrdup(data);
 	return tv;
 }
 
@@ -192,14 +192,14 @@ module_conf_t * parse_module(char *data)
 		} while(next);
 	}
 
-	m->m_name = strdup(name);
+	m->m_name = xstrdup(name);
 	return m;
 }
 
 
 int parse_module_param(const char *data, struct list_head *list)
 {
-	char *buf = strdup(data);
+	char *buf = xstrdup(data);
 	char *next;
 	char *current = buf;
 	module_conf_t *m;
@@ -292,7 +292,7 @@ static void configfile_read_element_cfg(void)
 		ec = element_cfg_alloc(name);
 
 		if ((description = cfg_getstr(element, "description")))
-			ec->ec_description = strdup(description);
+			ec->ec_description = xstrdup(description);
 
 		if ((max = cfg_getint(element, "max")))
 			ec->ec_rxmax = ec->ec_txmax = max;
@@ -639,7 +639,7 @@ void set_configfile(const char *file)
 {
 	static int set = 0;
 	if (!set) {
-		configfile = strdup(file);
+		configfile = xstrdup(file);
 		set = 1;
 	}
 }

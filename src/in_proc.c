@@ -195,14 +195,12 @@ static void proc_parse_opt(const char *type, const char *value)
 	if (!strcasecmp(type, "file") && value) {
 		if (!c_path_default)
 			xfree((char *)c_path);
-		if (!(c_path = strdup(value)))
-			quit("strdup: Out of memory\n");
+		c_path = xstrdup(value);
 		c_path_default = 0;
 	} else if (!strcasecmp(type, "group") && value) {
 		if (!c_group_default)
 			xfree((char *)c_group);
-		if (!(c_group = strdup(value)))
-			quit("strdup: Out of memory\n");
+		c_group = xstrdup(value);
 		c_group_default = 0;
 	} else if (!strcasecmp(type, "help")) {
 		print_help();

@@ -58,7 +58,7 @@ void *xrealloc(void *p, size_t s)
 
 char *xstrdup(const char *p)
 {
-	char *d = xstrdup(p);
+	char *d = strdup(p);
 
 	if (NULL == d) {
 		fprintf(stderr, "xstrdup: Out of memory!\n");

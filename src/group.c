@@ -216,13 +216,13 @@ int group_new_hdr(const char *name, const char *title,
 
 	init_list_head(&hdr->gh_list);
 
-	hdr->gh_name = strdup(name);
-	hdr->gh_title = strdup(title);
+	hdr->gh_name = xstrdup(name);
+	hdr->gh_title = xstrdup(title);
 
-	hdr->gh_column[0] = strdup(col1);
-	hdr->gh_column[1] = strdup(col2);
-	hdr->gh_column[2] = strdup(col3);
-	hdr->gh_column[3] = strdup(col4);
+	hdr->gh_column[0] = xstrdup(col1);
+	hdr->gh_column[1] = xstrdup(col2);
+	hdr->gh_column[2] = xstrdup(col3);
+	hdr->gh_column[3] = xstrdup(col4);
 
 	list_add_tail(&hdr->gh_list, &titles_list);
 
