@@ -56,6 +56,18 @@ void *xrealloc(void *p, size_t s)
 	return d;
 }
 
+char *xstrdup(const char *p)
+{
+	char *d = xstrdup(p);
+
+	if (NULL == d) {
+		fprintf(stderr, "xstrdup: Out of memory!\n");
+		exit(ENOMEM);
+	}
+
+	return d;
+}
+
 void xfree(void *d)
 {
 	if (d)
