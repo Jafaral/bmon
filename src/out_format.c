@@ -343,8 +343,7 @@ static void format_parse_opt(const char *type, const char *value)
 	else if (!strcasecmp(type, "debug"))
 		c_debug = 1;
 	else if (!strcasecmp(type, "fmt")) {
-		if (c_format)
-			free(c_format);
+		xfree(c_format);
 		c_format = xstrdup(value);
 	} else if (!strcasecmp(type, "quitafter") &&
 			       value)

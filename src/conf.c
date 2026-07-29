@@ -222,7 +222,7 @@ int parse_module_param(const char *data, struct list_head *list)
 		current = next;
 	} while (next);
 
-	free(buf);
+	xfree(buf);
 
 	return n;
 }

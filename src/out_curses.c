@@ -195,7 +195,7 @@ static void center_text(const char *fmt, ...)
 	addstr(str);
 	move(row, 0);
 
-	free(str);
+	xfree(str);
 }
 
 static int curses_init(void)
