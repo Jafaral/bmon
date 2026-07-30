@@ -60,7 +60,7 @@ INTERFACE SELECTION for more details.
 .PP
 \fB \-a\fR, \fB\-\-show\-all\fR
 .RS 4
-Display all interfaces, even interface that are administratively down.
+Display all interfaces, even interfaces that are administratively down.
 .RE
 .PP
 \fB \-r\fR, \fB\-\-read\-interval=\fRFLOAT
@@ -89,10 +89,10 @@ without receiving any statistical updates. The default is 30 seconds.
 .SH "INPUT MODULES"
 .PP
 Input modules provide statistical data about elements. Each element consists
-of attributes which represents a counter, a rate, or a percentage. Elements
+of attributes which represent a counter, a rate, or a percentage. Elements
 may carry additional child elements to represent a hierarchy. Each element is
 assigned to a group defined by the input module. Input modules are polled in
-the frequence of the configured read interval.
+the frequency of the configured read interval.
 .PP
 The following input modules are available:
 .TP
@@ -103,7 +103,7 @@ from the kernel. This is the default input module.
 .TP
 \fBproc\fR
 Reads interface statistics from the /proc/net/dev file. This is considered a
-legacy interface and provided for backwards compatibily reasons. This is a
+legacy interface and provided for backwards compatibility reasons. This is a
 fallback module if the Netlink interface is not available.
 
 .TP
@@ -152,7 +152,7 @@ available.
 
 .TP
 \fBformat\fR
-Fully scriptable output mode inteded for consumption by other programs.
+Fully scriptable output mode intended for consumption by other programs.
 See the module help text for additional information.
 
 .TP
