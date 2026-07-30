@@ -141,7 +141,7 @@ void unit_add_div(struct unit *unit, int type, const char *txt, float div)
 	init_list_head(&f->f_list);
 
 	f->f_divisor = div;
-	f->f_name = strdup(txt);
+	f->f_name = xstrdup(txt);
 
 	list_add_tail(&f->f_list, &unit->u_div[type]);
 }
@@ -153,7 +153,7 @@ struct unit *unit_add(const char *name)
 
 	if (!(unit = unit_lookup(name))) {
 		unit = xcalloc(1, sizeof(*unit));
-		unit->u_name = strdup(name);
+		unit->u_name = xstrdup(name);
 
 		for (i = 0; i < __UNIT_MAX; i++)
 			init_list_head(&unit->u_div[i]);

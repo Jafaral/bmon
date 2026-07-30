@@ -93,7 +93,7 @@ void element_parse_policy(const char *policy)
 	if (!policy)
 		return;
 
-	copy = strdup(policy);
+	copy = xstrdup(policy);
 	start = copy;
 
 	while ((tok = strtok_r(start, ",", &save)) != NULL) {
@@ -102,10 +102,10 @@ void element_parse_policy(const char *policy)
 		p = xcalloc(1, sizeof(*p));
 
 		if (*tok == '!') {
-			p->p_rule = strdup(++tok);
+			p->p_rule = xstrdup(++tok);
 			list_add_tail(&p->p_list, &denied);
 		} else {
-			p->p_rule = strdup(tok);
+			p->p_rule = xstrdup(tok);
 			list_add_tail(&p->p_list, &allowed);
 		}
 	}
@@ -164,7 +164,7 @@ struct element *element_lookup(struct element_group *group, const char *name,
 	for (i = 0; i < ATTR_HASH_SIZE; i++)
 		init_list_head(&e->e_attrhash[i]);
 
-	e->e_name = strdup(name);
+	e->e_name = xstrdup(name);
 	e->e_id = id;
 	e->e_parent = parent;
 	e->e_group = group;
@@ -516,15 +516,15 @@ void element_update_info(struct element *e, const char *name, const char *value)
 
 	if ((i = element_info_lookup(e, name))) {
 		xfree(i->i_value);
-		i->i_value = strdup(value);
+		i->i_value = xstrdup(value);
 		return;
 	}
 
 	DBG("Created element info %s (\"%s\")", name, value);
 
 	i = xcalloc(1, sizeof(*i));
-	i->i_name = strdup(name);
-	i->i_value = strdup(value);
+	i->i_name = xstrdup(name);
+	i->i_value = xstrdup(value);
 
 	e->e_ninfo++;
 

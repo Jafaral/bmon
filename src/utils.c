@@ -56,6 +56,18 @@ void *xrealloc(void *p, size_t s)
 	return d;
 }
 
+char *xstrdup(const char *p)
+{
+	char *d = strdup(p);
+
+	if (NULL == d) {
+		fprintf(stderr, "xstrdup: Out of memory!\n");
+		exit(ENOMEM);
+	}
+
+	return d;
+}
+
 void xfree(void *d)
 {
 	if (d)
@@ -419,15 +431,14 @@ out:
 	/* free unused tokens */
 	for (tok = tok->t_next ; tok; tok = t) {
 		t = tok->t_next;
-		if (tok->t_name)
-			free(tok->t_name);
-		free(tok);
+		xfree(tok->t_name);
+		xfree(tok);
 	}
 
 	return f;
 
 errout:
-	free(f);
+	xfree(f);
 	f = NULL;
 	tok = db_filter_out;
 	goto out;

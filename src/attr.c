@@ -96,9 +96,9 @@ int attr_def_add(const char *name, const char *desc, struct unit *unit,
 	def = xcalloc(1, sizeof(*def));
 
 	def->ad_id = attr_id_gen++;
-	def->ad_name = strdup(name);
+	def->ad_name = xstrdup(name);
 
-	def->ad_description = strdup(desc ? : "");
+	def->ad_description = xstrdup(desc ? : "");
 	def->ad_type = type;
 	def->ad_unit = unit;
 	def->ad_flags = flags;
@@ -213,7 +213,7 @@ void attr_parse_policy(const char *policy)
 		return ;
 	}
 
-	s = strdup(policy);
+	s = xstrdup(policy);
 	
 	for (i = 0, p = s; ; i++) {
 		if (s[i] == ',' || s[i] == '\0') {
@@ -224,11 +224,11 @@ void attr_parse_policy(const char *policy)
 			if ('!' == *p) {
 				if (d > (MAX_POLICY - 1))
 					break;
-				denied_attrs[d++] = strdup(++p);
+				denied_attrs[d++] = xstrdup(++p);
 			} else {
 				if(a > (MAX_POLICY - 1))
 					break;
-				allowed_attrs[a++] = strdup(p);
+				allowed_attrs[a++] = xstrdup(p);
 			}
 			
 			if (f)

@@ -51,7 +51,7 @@ struct history_def *history_def_alloc(const char *name)
 		return def;
 
 	def = xcalloc(1, sizeof(*def));
-	def->hd_name = strdup(name);
+	def->hd_name = xstrdup(name);
 
 	list_add_tail(&def->hd_list, &def_list);
 
