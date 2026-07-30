@@ -34,6 +34,8 @@
 #include <bmon/output.h>
 #include <bmon/utils.h>
 
+#include <locale.h>
+
 enum {
 	GRAPH_DISPLAY_SIDE_BY_SIDE = 1,
 	GRAPH_DISPLAY_STANDARD = 2,
@@ -57,6 +59,10 @@ enum {
 
 #define LIST_COL_1		31
 #define LIST_COL_2		55
+
+#define BRAILLE_RX_PAIR		(LAYOUT_MAX + 1)
+#define BRAILLE_TX_PAIR		(LAYOUT_MAX + 2)
+#define BRAILLE_DEFAULT_PAIR	(LAYOUT_MAX + 3)
 
 /* Set to element_current() before drawing */
 static struct element *current_element;
@@ -128,6 +134,7 @@ static struct graph_cfg c_graph_cfg = {
 	.gc_background		= '.',
 	.gc_noise		= ':',
 	.gc_unknown		= '?',
+	.gc_flags		= GRAPH_CFG_BRAILLE,
 };
 
 #define NEXT_ROW()			\
@@ -144,6 +151,31 @@ static void apply_layout(int layout)
 		attrset(COLOR_PAIR(layout) | cfg_layout[layout].l_attr);
 	else
 		attrset(cfg_layout[layout].l_attr);
+}
+
+static void apply_braille_graph_layout(int layout)
+{
+	if (!c_use_colors) {
+		attrset(cfg_layout[layout].l_attr);
+		return;
+	}
+
+	if (layout == LAYOUT_RX_GRAPH)
+		attrset(COLOR_PAIR(BRAILLE_RX_PAIR) | cfg_layout[layout].l_attr);
+	else if (layout == LAYOUT_TX_GRAPH)
+		attrset(COLOR_PAIR(BRAILLE_TX_PAIR) | cfg_layout[layout].l_attr);
+	else
+		apply_layout(layout);
+}
+
+static void apply_braille_default_layout(void)
+{
+	if (c_use_colors) {
+		attrset(COLOR_PAIR(BRAILLE_DEFAULT_PAIR) |
+			cfg_layout[LAYOUT_LIST].l_attr);
+		return;
+	}
+	attrset(A_NORMAL);
 }
 
 static char *float2str(double value, int width, int prec, char *buf, size_t len)
@@ -202,6 +234,13 @@ static void center_text(const char *fmt, ...)
 
 static int curses_init(void)
 {
+	setlocale(LC_CTYPE, "");
+	if ((c_graph_cfg.gc_flags & GRAPH_CFG_BRAILLE) && MB_CUR_MAX < 2) {
+		fprintf(stderr,
+			"Braille graphs require a UTF-8 locale, falling back to classic graphs\n");
+		c_graph_cfg.gc_flags &= ~GRAPH_CFG_BRAILLE;
+	}
+
 	if (!initscr()) {
 		fprintf(stderr, "Unable to initialize curses screen\n");
 		return -EOPNOTSUPP;
@@ -222,6 +261,13 @@ static int curses_init(void)
 #endif
 		for (i = 1; i < LAYOUT_MAX+1; i++)
 			init_pair(i, cfg_layout[i].l_fg, cfg_layout[i].l_bg);
+
+		init_pair(BRAILLE_RX_PAIR, cfg_layout[LAYOUT_RX_GRAPH].l_fg,
+			  cfg_layout[LAYOUT_LIST].l_bg);
+		init_pair(BRAILLE_TX_PAIR, cfg_layout[LAYOUT_TX_GRAPH].l_fg,
+			  cfg_layout[LAYOUT_LIST].l_bg);
+		init_pair(BRAILLE_DEFAULT_PAIR, cfg_layout[LAYOUT_LIST].l_fg,
+			  cfg_layout[LAYOUT_LIST].l_bg);
 	}
 		
 	keypad(stdscr, TRUE);
@@ -700,6 +746,56 @@ static void draw_graph_centered(struct graph *g, int row, int ncol,
 	mvprintw(row, ncol + hcenter, "%.*s", g->g_cfg.gc_width, text);
 }
 
+static int is_braille_blank(const char *p)
+{
+	return (unsigned char) p[0] == 0xe2 &&
+	       (unsigned char) p[1] == 0xa0 &&
+	       (unsigned char) p[2] == 0x80;
+}
+
+static void put_graph_row(struct graph *g, const char *line, int layout,
+			  int panel_end)
+{
+	int i, maxcells, fillcells;
+	int x, y;
+
+	if (!(g->g_cfg.gc_flags & GRAPH_CFG_BRAILLE)) {
+		put_line("%s", line);
+		return;
+	}
+
+	getyx(stdscr, y, x);
+	maxcells = cols - x;
+	if (maxcells < 0)
+		maxcells = 0;
+	if (maxcells > g->g_cfg.gc_width)
+		maxcells = g->g_cfg.gc_width;
+
+	if (panel_end > cols)
+		panel_end = cols;
+	fillcells = panel_end - x;
+	if (fillcells < 0)
+		fillcells = 0;
+	if (fillcells < maxcells)
+		fillcells = maxcells;
+
+	apply_braille_default_layout();
+	for (i = 0; i < fillcells; i++)
+		addch(' ');
+
+	for (i = 0; i < maxcells; i++) {
+		const char *cell = line + (i * GRAPH_BRAILLE_CELL_BYTES);
+
+		if (!is_braille_blank(cell)) {
+			move(y, x + i);
+			apply_braille_graph_layout(layout);
+			addnstr(cell, GRAPH_BRAILLE_CELL_BYTES);
+		}
+	}
+
+	move(y, x + fillcells);
+}
+
 static void draw_table(struct graph *g, struct graph_table *tbl,
 		       struct attr *a, struct history *h,
 		       const char *hdr, int ncol, int layout)
@@ -733,7 +829,10 @@ static void draw_table(struct graph *g, struct graph_table *tbl,
         sprintf(buf, "%'8.2f ", tbl->gt_scale[i]);
         addstr(buf);
         apply_layout(layout);
-        put_line("%s", tbl->gt_table + (i * graph_row_size(&g->g_cfg)));
+        put_graph_row(g, tbl->gt_table + (i * graph_row_size(&g->g_cfg)),
+		      layout,
+		      graph_display == GRAPH_DISPLAY_SIDE_BY_SIDE && !ncol ?
+		      cols / 2 : cols);
         apply_layout(LAYOUT_LIST);
 	}
 
@@ -1323,10 +1422,11 @@ static void print_module_help(void)
 	"  Author: Thomas Graf <tgraf@suug.ch>\n" \
 	"\n" \
 	"  Options:\n" \
-	"    fgchar=CHAR    Foreground character (default: '|')\n" \
-	"    bgchar=CHAR    Background character (default: '.')\n" \
-	"    nchar=CHAR     Noise character (default: ':')\n" \
-	"    uchar=CHAR     Unknown character (default: '?')\n" \
+	"    braille[=0|1]  Enable(1)/disable(0) Braille-smoothed graphs (default: 1)\n" \
+	"    fgchar=CHAR    Classic graph foreground character (default: '|')\n" \
+	"    bgchar=CHAR    Classic graph background character (default: '.')\n" \
+	"    nchar=CHAR     Classic graph noise character (default: ':')\n" \
+	"    uchar=CHAR     Classic graph unknown character (default: '?')\n" \
 	"    gheight=NUM    Height of graph (default: 6)\n" \
 	"    gwidth=NUM     Width of graph (default: 60)\n" \
 	"    ngraph=NUM     Number of graphs (default: 1)\n" \
@@ -1341,15 +1441,19 @@ static void print_module_help(void)
 
 static void curses_parse_opt(const char *type, const char *value)
 {
-	if (!strcasecmp(type, "fgchar") && value)
+	if (!strcasecmp(type, "fgchar") && value) {
 		c_graph_cfg.gc_foreground = value[0];
-	else if (!strcasecmp(type, "bgchar") && value)
+		c_graph_cfg.gc_flags &= ~GRAPH_CFG_BRAILLE;
+	} else if (!strcasecmp(type, "bgchar") && value) {
 		c_graph_cfg.gc_background = value[0];
-	else if (!strcasecmp(type, "nchar") && value)
+		c_graph_cfg.gc_flags &= ~GRAPH_CFG_BRAILLE;
+	} else if (!strcasecmp(type, "nchar") && value) {
 		c_graph_cfg.gc_noise = value[0];
-	else if (!strcasecmp(type, "uchar") && value)
+		c_graph_cfg.gc_flags &= ~GRAPH_CFG_BRAILLE;
+	} else if (!strcasecmp(type, "uchar") && value) {
 		c_graph_cfg.gc_unknown = value[0];
-	else if (!strcasecmp(type, "gheight") && value)
+		c_graph_cfg.gc_flags &= ~GRAPH_CFG_BRAILLE;
+	} else if (!strcasecmp(type, "gheight") && value)
 		c_graph_cfg.gc_height = strtol(value, NULL, 0);
 	else if (!strcasecmp(type, "gwidth") && value)
 		c_graph_cfg.gc_width = strtol(value, NULL, 0);
@@ -1366,7 +1470,12 @@ static void curses_parse_opt(const char *type, const char *value)
 		c_show_ipv6 = value ? !!strtol(value, NULL, 0) : 1;
 	else if (!strcasecmp(type, "nocolors"))
 		c_use_colors = 0;
-	else if (!strcasecmp(type, "minlist") && value)
+	else if (!strcasecmp(type, "braille")) {
+		if (value ? !!strtol(value, NULL, 0) : 1)
+			c_graph_cfg.gc_flags |= GRAPH_CFG_BRAILLE;
+		else
+			c_graph_cfg.gc_flags &= ~GRAPH_CFG_BRAILLE;
+	} else if (!strcasecmp(type, "minlist") && value)
 		c_list_min = strtol(value, NULL, 0);
 	else if (!strcasecmp(type, "help")) {
 		print_module_help();
