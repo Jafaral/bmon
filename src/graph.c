@@ -163,10 +163,10 @@ static void fill_braille_table(struct graph *g, struct graph_table *tbl,
 	}
 
 	dots = xcalloc(cfg->gc_height * cfg->gc_width, sizeof(*dots));
-	render_braille_table(cfg, tbl->gt_table, dots);
 
 	/* leave table blank if there is no data */
 	if (!h || !data->hs_data) {
+		render_braille_table(cfg, tbl->gt_table, dots);
 		xfree(dots);
 		return;
 	}

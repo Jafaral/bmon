@@ -235,8 +235,11 @@ static void center_text(const char *fmt, ...)
 static int curses_init(void)
 {
 	setlocale(LC_CTYPE, "");
-	if ((c_graph_cfg.gc_flags & GRAPH_CFG_BRAILLE) && MB_CUR_MAX < 2)
+	if ((c_graph_cfg.gc_flags & GRAPH_CFG_BRAILLE) && MB_CUR_MAX < 2) {
+		fprintf(stderr,
+			"Braille graphs require a UTF-8 locale, falling back to classic graphs\n");
 		c_graph_cfg.gc_flags &= ~GRAPH_CFG_BRAILLE;
+	}
 
 	if (!initscr()) {
 		fprintf(stderr, "Unable to initialize curses screen\n");
@@ -1419,8 +1422,7 @@ static void print_module_help(void)
 	"  Author: Thomas Graf <tgraf@suug.ch>\n" \
 	"\n" \
 	"  Options:\n" \
-	"    braille        Use Braille-smoothed graphs (default)\n" \
-	"    nobraille      Use classic single-character graphs\n" \
+	"    braille[=0|1]  Enable(1)/disable(0) Braille-smoothed graphs (default: 1)\n" \
 	"    fgchar=CHAR    Classic graph foreground character (default: '|')\n" \
 	"    bgchar=CHAR    Classic graph background character (default: '.')\n" \
 	"    nchar=CHAR     Classic graph noise character (default: ':')\n" \
@@ -1468,11 +1470,12 @@ static void curses_parse_opt(const char *type, const char *value)
 		c_show_ipv6 = value ? !!strtol(value, NULL, 0) : 1;
 	else if (!strcasecmp(type, "nocolors"))
 		c_use_colors = 0;
-	else if (!strcasecmp(type, "braille"))
-		c_graph_cfg.gc_flags |= GRAPH_CFG_BRAILLE;
-	else if (!strcasecmp(type, "nobraille"))
-		c_graph_cfg.gc_flags &= ~GRAPH_CFG_BRAILLE;
-	else if (!strcasecmp(type, "minlist") && value)
+	else if (!strcasecmp(type, "braille")) {
+		if (value ? !!strtol(value, NULL, 0) : 1)
+			c_graph_cfg.gc_flags |= GRAPH_CFG_BRAILLE;
+		else
+			c_graph_cfg.gc_flags &= ~GRAPH_CFG_BRAILLE;
+	} else if (!strcasecmp(type, "minlist") && value)
 		c_list_min = strtol(value, NULL, 0);
 	else if (!strcasecmp(type, "help")) {
 		print_module_help();
