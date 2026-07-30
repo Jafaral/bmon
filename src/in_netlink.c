@@ -704,8 +704,10 @@ static void handle_qdisc(struct nl_object *obj, void *arg)
 	ndata.parent = e;
 
 	switch(rtnl_tc_get_parent(tc)) {
-	case TC_H_INGRESS:
-		if (!strcmp(rtnl_tc_get_kind(tc), "clsact")) {
+	case TC_H_INGRESS: {
+		const char *kind = rtnl_tc_get_kind(tc);
+
+		if (kind && !strcmp(kind, "clsact")) {
 			 find_cls(rtnl_tc_get_ifindex(tc),
 				  TC_H_MAKE(TC_H_CLSACT, TC_H_MIN_INGRESS),
 				  &ndata);
@@ -716,6 +718,7 @@ static void handle_qdisc(struct nl_object *obj, void *arg)
 			find_cls(rtnl_tc_get_ifindex(tc), TC_H_INGRESS, &ndata);
 		}
 		break;
+	}
 	case TC_H_ROOT:
 		find_cls(rtnl_tc_get_ifindex(tc), TC_H_ROOT, &ndata);
 		find_classes(TC_H_ROOT, &ndata);
