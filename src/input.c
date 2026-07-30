@@ -45,22 +45,22 @@ static void activate_default(void)
 		struct bmon_module *m;
 
 #ifdef SYS_LINUX
-		if (!input_set("netlink"))
+		if (!input_set("netlink", false))
 			return;
 
-		if (!input_set("proc"))
+		if (!input_set("proc", false))
 			return;
 #endif
 
 #ifdef SYS_BSD
-		if (!input_set("sysctl"))
+		if (!input_set("sysctl", false))
 			return;
 #endif
 
 		/* Fall back to anything that could act as default */
 		list_for_each_entry(m, &input_subsys.s_mod_list, m_list) {
 			if (m->m_flags & BMON_MODULE_DEFAULT)
-				if (!input_set(m->m_name))
+				if (!input_set(m->m_name, false))
 					return;
 		}
 
@@ -73,9 +73,26 @@ void input_read(void)
 	module_foreach_run_enabled(&input_subsys);
 }
 
-int input_set(const char *name)
+int input_set(const char *name, bool update)
 {
-	return module_set(&input_subsys, name);
+	return module_set(&input_subsys, name, update);
+}
+
+int input_is_enabled(const char *name)
+{
+	struct bmon_module *m;
+
+	list_for_each_entry(m, &input_subsys.s_mod_list, m_list) {
+		if (!strcmp(name, m->m_name) &&
+			(m->m_flags & BMON_MODULE_ENABLED))
+			return 1;
+	}
+	return 0;
+}
+
+int input_get_opt(const char *name, const char* opt)
+{
+	return module_get_opt(&input_subsys, name, opt);
 }
 
 static struct bmon_subsys input_subsys = {

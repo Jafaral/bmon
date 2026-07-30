@@ -80,7 +80,7 @@ void output_post(void)
 
 int output_set(const char *name)
 {
-	return module_set(&output_subsys, name);
+	return module_set(&output_subsys, name, false);
 }
 
 static struct bmon_subsys output_subsys = {
