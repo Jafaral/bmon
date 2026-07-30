@@ -68,10 +68,10 @@ struct unit *unit_lookup(const char *name)
  * Searches for the best divisor to be used depending on the unit
  * exponent configured by the user. If a dynamic exponent is
  * configured, the divisor is selected based on the value of hint
- * so that hint is dividied into a small float >= 1.0. The name
+ * so that hint is divided into a small float >= 1.0. The name
  * of the divisor used is stored in *name.
  *
- * If prec points to a vaild integer, a number of precision digits
+ * If prec points to a valid integer, a number of precision digits
  * is suggested to avoid n.00 to make pretty printing easier.
  */
 double unit_divisor(uint64_t hint, struct unit *unit, char **name,

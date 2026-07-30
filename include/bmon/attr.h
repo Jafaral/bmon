@@ -42,7 +42,7 @@ struct rate
 	/* Value of r_current at last read */
 	uint64_t		r_prev;
 
-	/* Reset value to substract to emulate statistics reset */
+	/* Reset value to subtract to emulate statistics reset */
 	uint64_t		r_reset;
 
 	/* Rate per second calculated every `rate_interval' */
