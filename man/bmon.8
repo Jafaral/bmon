@@ -156,6 +156,13 @@ Fully scriptable output mode intended for consumption by other programs.
 See the module help text for additional information.
 
 .TP
+\fBjson\fR
+JSON output mode intended for consumption by other programs. Prints one
+JSON object per update with a Unix timestamp plus groups, elements, and
+attribute totals and rates. See the module help text for additional
+information.
+
+.TP
 \fBnull\fR
 Disable output.
 
@@ -235,6 +242,12 @@ format string:
 .PP
 .RS 4
 \fBbmon \-p \(aqeth*\(aq \-o format:fmt=\(aq$(element:name) $(attr:rxrate:packets)\en\(aq\fP
+.RE
+.PP
+To run bmon in JSON mode for a single sample on eth0:
+.PP
+.RS 4
+\fBbmon \-p eth0 \-o json:quitafter=1\fP
 .RE
 .PP
 
