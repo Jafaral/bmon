@@ -94,7 +94,6 @@ static int info_cols;
 
 static int initialized;
 static int print_help;
-static int quit_mode;
 static int help_page;
 
 /* Current row */
@@ -1081,9 +1080,9 @@ static int handle_input(int ch)
 	{
 		case 'q':
 			exit(0);
+			return 1;
 
 		case 0x1b:
-			quit_mode = 0;
 			print_help = 0;
 			return 1;
 
