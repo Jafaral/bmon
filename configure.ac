@@ -21,7 +21,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-AC_INIT([bmon], [4.0], [], [], [https://github.com/tgraf/bmon])
+AC_INIT([bmon], [5.0], [], [], [https://github.com/Jafaral/bmon])
 AC_CONFIG_HEADERS([include/bmon/defs.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])

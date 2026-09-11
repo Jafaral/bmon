@@ -4,6 +4,7 @@
  * Copyright (c) 2017 Paul Miller <paul@jettero.pl>
  * Copyright (c) 2001-2013 Thomas Graf <tgraf@suug.ch>
  * Copyright (c) 2013 Red Hat, Inc.
+ * Copyright (c) 2026 Architecture Technology Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
